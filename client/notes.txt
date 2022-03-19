@@ -1,0 +1,7 @@
+https://www.c-sharpcorner.com/article/how-to-deploy-react-application-on-github-pages/
+
+npm install gh-pages --save-dev
+"predeploy": "npm run build",
+"deploy": "gh-pages -d build"
+
+npm run deploy
