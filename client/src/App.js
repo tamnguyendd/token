@@ -18,9 +18,7 @@ import Create from "./components/create";
 
 import ChanLe from './chanle/chanle';
 
-import ListToken from './payment_components/list_token';
-import AddToken from './payment_components/add_token';
-import UpdateToken from './payment_components/update_token';
+import TokenManagement from './token_components/token_management';
 
 class App extends React.Component {
 
@@ -112,7 +110,7 @@ class App extends React.Component {
                   <Route exact path='/home' element={<ListItems MetaMaskAddress={this.state.MetaMaskAddress} />} />
 
                   <Route exact path='/coin' element={<RecordList  />} />
-                  <Route exact path='/token' element={<ListToken  />} />
+                  <Route exact path='/token' element={<TokenManagement  />} />
 
                   <Route path="/edit/:id" element={<Edit />} />
                   <Route path="/create" element={<Create />} />
