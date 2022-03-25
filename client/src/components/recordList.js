@@ -70,8 +70,8 @@ export default function RecordList() {
     return (
         <div>
             <h3>Record List</h3>
-            <Link  to={`/create`}>Create</Link>
-            
+            <Link to={`/create`}>Create</Link>
+
             <table className="table table-striped" style={{ marginTop: 20 }}>
                 <thead>
                     <tr>

@@ -13,20 +13,9 @@ const dbo = require("./db/conn");
 const Web3 = require('web3');
 app.use("/scripts",express.static(__dirname + "/node_modules/web3.js-browser/build/"));
 
-// const MetamaskValue = require("./MetamaskValue");
-// var Contract = require("web3-eth-contract");
-// Contract.setProvider("wss://rinkeby.infura.io/ws/v3/c8a3bb3d19a54ee2be98588e53a5e4eb");
-// const addressMM = MetamaskValue.SM_PAYMENT_ADDRESS;
-// const ABI =MetamaskValue.SM_PAYMENT_ABI;
-// var contractMM = new Contract(ABI, addressMM);
+const MetamaskUtil = require('./metamask/metamask_utility');
 
-// const number_of_token = () =>{
-//     contractMM.methods.number_of_token().call().then((data) => {
-//         console.log("number_of_token: " + data);
-//     });
-// }
-
-app.listen(port, () => {
+app.listen(port, async () => {
   // perform a database connection when server starts
   dbo.connectToServer(function (err) {
     if (err) console.error(err);
@@ -34,5 +23,5 @@ app.listen(port, () => {
   });
   console.log(`Server is running on port: ${port}`);
 
- //number_of_token();
+  await MetamaskUtil.Get_event_have_human_join();
 });

@@ -19,6 +19,8 @@ import Create from "./components/create";
 import ChanLe from './chanle/chanle';
 
 import TokenManagement from './token_components/token_management';
+import MyTokenAsset from './token_components/my_token_asset';
+import SmartContractTokenAsset from './token_components/smartcontract_token_asset';
 
 class App extends React.Component {
 
@@ -75,6 +77,7 @@ class App extends React.Component {
     window.ethereum.on("accountsChanged", (data) => {
       //console.log(data.length);
       this.setState({ MetaMaskAddress: data[0] });
+      window.location.reload();
     });
 
     return (
@@ -91,6 +94,8 @@ class App extends React.Component {
                       <Nav.Link as={Link} to="/home">Home</Nav.Link>
                       <Nav.Link as={Link} to="/coin">Coin</Nav.Link>
                       <Nav.Link as={Link} to="/token">Token</Nav.Link>
+                      <Nav.Link as={Link} to="/my-asset">My Asset</Nav.Link>
+                      <Nav.Link as={Link} to="/smartcontract-asset">SM Asset</Nav.Link>
                       <Nav.Link as={Link} to="/chanle">Chan hay Le</Nav.Link>
                       <Nav.Link as={Link} to="/layout2">Features</Nav.Link>
                       {/* 
@@ -111,6 +116,8 @@ class App extends React.Component {
 
                   <Route exact path='/coin' element={<RecordList  />} />
                   <Route exact path='/token' element={<TokenManagement  />} />
+                  <Route exact path='/my-asset' element={<MyTokenAsset  />} />
+                  <Route exact path='/smartcontract-asset' element={<SmartContractTokenAsset  />} />
 
                   <Route path="/edit/:id" element={<Edit />} />
                   <Route path="/create" element={<Create />} />

@@ -5,26 +5,33 @@ const express = require("express");
 // The router will be added as a middleware and will take control of requests starting with path /record.
 const tokenRoutes = express.Router();
 
+// This will help us connect to the database
+const dbo = require("../db/conn");
+
+// This help convert the id from string to ObjectId for the _id.
+const ObjectId = require("mongodb").ObjectId;
+
 // connect metamask and smart contract
-const MetamaskValue = require("../MetamaskValue");
-
-var Contract = require("web3-eth-contract");
-Contract.setProvider("wss://rinkeby.infura.io/ws/v3/c8a3bb3d19a54ee2be98588e53a5e4eb");
-const addressMM = MetamaskValue.SM_PAYMENT_ADDRESS;
-const ABI =MetamaskValue.SM_PAYMENT_ABI;
-var contractMM = new Contract(ABI, addressMM);
-
-
-const number_of_token = () =>{
-    contractMM.methods.number_of_token().call().then((data) => {
-        console.log("number_of_token: " + data);
-    });
-}
+const MetamaskValue = require("../metamask/MetamaskValue");
 
 // This section will help you get a list of all the records.
 tokenRoutes.route("/token").get(function (req, res) {
-    number_of_token();
     res.json("Hello result");
+});
+
+// This section will help you create a new record.
+tokenRoutes.route("/token/add").post(function (req, response) {
+    let db_connect = dbo.getDb();
+    let myobj = {
+        fromAddress: req.body.fromAddress,
+        toAddress: req.body.toAddress,
+        amount: req.body.amount,
+    };
+    db_connect.collection("tokens").insertOne(myobj, function (err, res) {
+        if (err) throw err;
+        //console.log(res);
+    });
+    response.json(dbo.convertObjectIdToNumber(myobj._id));
 });
 
 module.exports = tokenRoutes;

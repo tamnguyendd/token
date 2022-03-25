@@ -5,3 +5,18 @@ npm install gh-pages --save-dev
 "deploy": "gh-pages -d build"
 
 npm run deploy
+
+0x5cfb6862846D515D7BD205232b24d2758678C812
+0x53132E7b94D2C17C57bE50F25CEBD006FbeF05b1
+
+
+
+const orderHash =
+  web3 &&
+  web3.utils.soliditySha3(
+    { type: "bytes12", value: demoId! },
+    { type: "address", value: account.data }
+  );
+
+_id: ObjectId(4 bytes timestamp, 3 bytes machine id, 2 bytes process id, 3 bytes incrementer)
+https://www.mongodb.com/community/forums/t/is-it-possible-to-decript-objectid-in-partitions-from-string/103346

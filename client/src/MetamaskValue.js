@@ -307,7 +307,7 @@ const MetamaskValue = {
         }
     ],
 
-    SM_PAYMENT_ADDRESS:"0x59d98e76D5474FC0bb0B0cFC423d73C8973cAccc",
+    SM_PAYMENT_ADDRESS:"0x075A5289be36b94Df50aFCc6726571746b558Db7",
     SM_PAYMENT_ABI:[
         {
             "inputs": [
@@ -344,6 +344,11 @@ const MetamaskValue = {
         },
         {
             "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "payment_id",
+                    "type": "uint256"
+                },
                 {
                     "internalType": "uint256",
                     "name": "token_order",
@@ -384,6 +389,12 @@ const MetamaskValue = {
         {
             "anonymous": false,
             "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "uint256",
+                    "name": "payment_id",
+                    "type": "uint256"
+                },
                 {
                     "indexed": false,
                     "internalType": "uint256",

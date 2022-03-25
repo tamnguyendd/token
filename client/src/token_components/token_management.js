@@ -1,11 +1,11 @@
 import React from 'react';
-import { Table, Modal, Button, Form, Row, Col } from 'react-bootstrap';
-import { ContractMM, TokenContract, GetCurrentMM_Address } from '../metamask_components/metamask_utility.js';
+import { Table, Modal, Button, Form, Row, Col, ToastContainer, Toast } from 'react-bootstrap';
+import { SM_PAYMENT_ADDRESS, ContractMM, GetTokenContract, GetCurrentMM_Address, GetToWei } from '../metamask_components/metamask_utility.js';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrashCan, faPenToSquare, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPenToSquare, faPlus } from "@fortawesome/free-solid-svg-icons";
 import loading_img from "../loading.gif";
 
-class ListToken extends React.Component {
+class TokenManagement extends React.Component {
 
     constructor(props) {
         super(props);
@@ -18,7 +18,18 @@ class ListToken extends React.Component {
             isShowAddModal: false,
             currentAddToken: {},
 
-            isSaving: false
+            isShowDepositModal: false,
+            currentDepositToken: {},
+
+            isSaving: false,
+
+            ToastData: {
+                show: false,
+                header: "",
+                message: "",
+                bg: "",
+                deplay: 3000
+            }
         };
     }
 
@@ -35,8 +46,8 @@ class ListToken extends React.Component {
             var tokenList = [];
             for (var i = 0; i < this.state.number_of_token; i++) {
                 var token_info = await ContractMM.methods.get_token_info(i).call();
-                var name = await TokenContract(token_info[0]).methods.name().call();
-                var symbol = await TokenContract(token_info[0]).methods.symbol().call();
+                var name = await GetTokenContract(token_info[0]).methods.name().call();
+                var symbol = await GetTokenContract(token_info[0]).methods.symbol().call();
 
                 var token = {
                     _index: i,
@@ -104,15 +115,19 @@ class ListToken extends React.Component {
             //reload list
             await this.getListToken();
 
-            alert("Update OK!");
+            //alert("Update OK!");
+            this.showToast(true);
 
             console.log(rs);
 
             //close modal
             this.closeUpdateModal();
         } catch (err) {
-            alert("Update NOT OK!");
+            //alert("Update NOT OK!");
+            this.showToast(false);
             console.log(err);
+            console.log(err.receipt.transactionHash);
+            //console.log(await GetTransactionDetail(err.receipt.transactionHash))
         }
 
         this.setState({ isSaving: false });
@@ -157,8 +172,8 @@ class ListToken extends React.Component {
 
             try {
                 if (value) {
-                    crData._Name = await TokenContract(value).methods.name().call();
-                    crData._Symbol = await TokenContract(value).methods.symbol().call();
+                    crData._Name = await GetTokenContract(value).methods.name().call();
+                    crData._Symbol = await GetTokenContract(value).methods.symbol().call();
                 }
             } catch (err) {
                 console.log(err);
@@ -192,20 +207,109 @@ class ListToken extends React.Component {
             //reload list
             await this.getListToken();
 
-            alert("Add OK!");
+            //alert("Add OK!");
+            this.showToast(true);
 
             console.log(rs);
 
             //close modal
             this.closeAddModal();
         } catch (err) {
-            alert("Add NOT OK!");
+            //alert("Add NOT OK!");
+            this.showToast(false);
             console.log(err);
         }
 
         this.setState({ isSaving: false });
     }
     // The End Update Modal
+
+    //3) Deposit Modal
+    async closeDepositModal() {
+        await this.setState({ isShowDepositModal: false });
+        await this.setState({ currentDepositToken: {} });
+    };
+
+    async ShowDepositModal(token) {
+        var crToken = { ...token };
+        crToken._FromAddress = await GetCurrentMM_Address();
+        crToken._Amount = 0;
+        await this.setState({ currentDepositToken: crToken });
+        await this.setState({ isShowDepositModal: true });
+    }
+
+    changeDepositForm(namestate, value) {
+        var crData = this.state.currentDepositToken;
+        crData[namestate] = value;
+        this.setState({ currentDepositToken: crData });
+    }
+
+    async DepositToken() {
+        try {
+            this.setState({ isSaving: true });
+
+            var token = this.state.currentDepositToken;
+
+            var senderAddress = await GetCurrentMM_Address();
+            var weiAmount = GetToWei(token._Amount, 'ether');
+
+            var approve = await GetTokenContract(token._token).methods.approve(SM_PAYMENT_ADDRESS, weiAmount)
+                .send({
+                    from: senderAddress
+                });
+
+            console.log(approve);
+
+            var rs = await ContractMM.methods.deposit_by_Token(
+                token._index,
+                token._Amount
+            ).send(
+                {
+                    from: senderAddress
+                    //value: web3.utils.toWei($("#txt_Amount").val(), "ether")
+                }
+            );
+
+            //reload list
+            await this.getListToken();
+
+            //alert("Add OK!");
+            this.showToast(true);
+
+            console.log(rs);
+
+            //close modal
+            this.closeDepositModal();
+        } catch (err) {
+            //alert("Add NOT OK!");
+            this.showToast(false);
+            console.log(err);
+        }
+
+        this.setState({ isSaving: false });
+    }
+    // The end Deposit Modal
+    closeToast() {
+        var toast = this.state.ToastData;
+        toast.show = false;
+        this.setState({ ToastData: toast });
+    }
+
+    showToast(isOK) {
+        var toast = this.state.ToastData;
+        if (isOK) {
+            toast.show = true;
+            toast.bg = "info";
+            toast.header = "info";
+            toast.message = "Susscessfully!";
+        } else {
+            toast.show = true;
+            toast.bg = "danger";
+            toast.header = "Error";
+            toast.message = "Has some Error!";
+        }
+        this.setState({ ToastData: toast });
+    }
 
     render() {
 
@@ -227,7 +331,7 @@ class ListToken extends React.Component {
                         <td>{value._Ratio_Buy}</td>
                         <td>{value._Ratio_Sell}</td>
                         <td><Button onClick={() => this.showUpdateModal(value)} ><FontAwesomeIcon icon={faPenToSquare} /></Button></td>
-                        <td><Button variant="secondary"><FontAwesomeIcon icon={faTrashCan} /></Button></td>
+                        {/* <td><Button variant="secondary" onClick={async () => await this.ShowDepositModal(value)}>Deposit</Button></td> */}
                     </tr>);
             }
 
@@ -249,7 +353,7 @@ class ListToken extends React.Component {
                                 <th>Ratio Buy</th>
                                 <th>Ratio Sell</th>
                                 <th>Edit</th>
-                                <th>Delete</th>
+                                {/* <th>Deposit</th> */}
                             </tr>
                         </thead>
                         <tbody>
@@ -452,14 +556,99 @@ class ListToken extends React.Component {
 
                         </Modal.Footer>
                     </Modal>
+
+                    {/* Modal Deposit */}
+                    <Modal show={this.state.isShowDepositModal}
+                        size="lg"
+                        aria-labelledby="contained-modal-title-vcenter"
+                        centered
+                        onHide={() => this.closeDepositModal()}
+                        backdrop="static"
+                    >
+                        <Modal.Header closeButton>
+                            <Modal.Title>Deposit</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <Form>
+                                <Form.Group as={Row} className="mb-3">
+                                    <Form.Label column sm={2}>
+                                        From
+                                    </Form.Label>
+                                    <Col sm={10}>
+                                        <Form.Control value={this.state.currentDepositToken._FromAddress} disabled />
+                                    </Col>
+                                </Form.Group>
+
+                                <Form.Group as={Row} className="mb-3">
+                                    <Form.Label column sm={2}>
+                                        To
+                                    </Form.Label>
+                                    <Col sm={10}>
+                                        <Form.Control value={this.state.currentDepositToken._token} disabled />
+                                    </Col>
+                                </Form.Group>
+
+                                <Form.Group as={Row} className="mb-3">
+                                    <Form.Label column sm={2}>
+                                        Deposit Token
+                                    </Form.Label>
+                                    <Col sm={10}>
+                                        <Form.Control value={this.state.currentDepositToken._Symbol} disabled />
+                                    </Col>
+                                </Form.Group>
+
+                                <Form.Group as={Row} className="mb-3">
+                                    <Form.Label column sm={2}>
+                                        Amount
+                                    </Form.Label>
+                                    <Col sm={3}>
+                                        <Form.Control style={{ "textAlign": "right" }}
+                                            type="number"
+                                            value={this.state.currentDepositToken._Amount}
+                                            onChange={(e) => this.changeDepositForm("_Amount", e.target.value)} />
+                                    </Col>
+                                </Form.Group>
+
+                            </Form>
+                        </Modal.Body>
+                        <Modal.Footer className='text-center'>
+                            <Button variant="secondary" onClick={() => this.closeDepositModal()}>
+                                Close
+                            </Button>
+
+                            {
+                                this.state.isSaving ?
+                                    <img src={loading_img} className="loading_img" alt="loading..." /> :
+                                    <Button variant="primary" onClick={() => this.DepositToken()}>
+                                        Deposit
+                                    </Button>
+                            }
+
+                        </Modal.Footer>
+                    </Modal>
+
+                    <ToastContainer className="p-3" position="top-center" style={{ zIndex: '1100' }} >
+                        <Toast bg={this.state.ToastData.bg}
+                            show={this.state.ToastData.show}
+                            deplay={this.state.ToastData.deplay}
+                            autohide
+                            onClose={() => this.closeToast()}
+                        >
+                            <Toast.Header>
+                                <strong className="me-auto">{this.state.ToastData.header}</strong>
+                            </Toast.Header>
+                            <Toast.Body>{this.state.ToastData.message}</Toast.Body>
+                        </Toast>
+                    </ToastContainer>
                 </>
         }
         return (
             <>
+                <h1>List Tokens</h1>
                 {renderContent}
             </>
         );
     }
 };
 
-export default ListToken  
+export default TokenManagement  
