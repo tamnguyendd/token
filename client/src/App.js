@@ -22,6 +22,8 @@ import TokenManagement from './token_components/token_management';
 import MyTokenAsset from './token_components/my_token_asset';
 import SmartContractTokenAsset from './token_components/smartcontract_token_asset';
 
+import {sk} from './socket/socket_uti.js';
+
 class App extends React.Component {
 
   constructor(props) {

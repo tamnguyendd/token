@@ -20,12 +20,12 @@ module.exports = {
         await contractMM.events.have_human_join(
             {
                 filter: {},
-                fromBlock:"latest"
+                fromBlock: "latest"
                 //fromBlock: 0,
                 //toBlock: "latest"
             }, function (err, events) {
                 if (!err) {
-                    console.log("******OK*******");
+                    console.log("******event_have_human_join OK *******");
                     //console.log(events);
                     if (events) {
                         console.log(events.returnValues.payment_id);
@@ -38,72 +38,59 @@ module.exports = {
                 }
             });
 
-            // await contractMM.getPastEvents(
-            //     "have_human_join",
-            //     {
-            //         //filter: { order_id: [2] },
-            //         //filter: {value: [117,50]},
-            //         //filter: {payment_id:["16480401241271143642922538634"]}, 
-            //         //fromBlock: "latest" ,
-            //         //fromBlock: 0 ,
-            //         //toBlock: "latest"
-            //         filter: {},
-            //         fromBlock: "latest"
-            //     }, (errors, events) => {
-            //         if (!errors) {
-            //             if (events.length > 0) {
-            //                 console.log(events[0].returnValues.payment_id);
-            //                 console.log(events[0].returnValues.token_order);
-            //                 console.log(events[0].returnValues.amount);
-            //                 console.log(web3.utils.fromWei(events[0].returnValues.amount, "ether"))
-            //             }
-            //             console.log("OK");
-            //         }
-            //     }
-            // );
+        // await contractMM.getPastEvents(
+        //     "have_human_join",
+        //     {
+        //         //filter: { order_id: [2] },
+        //         //filter: {value: [117,50]},
+        //         //filter: {payment_id:["16480401241271143642922538634"]}, 
+        //         //fromBlock: "latest" ,
+        //         //fromBlock: 0 ,
+        //         //toBlock: "latest"
+        //         filter: {},
+        //         fromBlock: "latest"
+        //     }, (errors, events) => {
+        //         if (!errors) {
+        //             if (events.length > 0) {
+        //                 console.log(events[0].returnValues.payment_id);
+        //                 console.log(events[0].returnValues.token_order);
+        //                 console.log(events[0].returnValues.amount);
+        //                 console.log(web3.utils.fromWei(events[0].returnValues.amount, "ether"))
+        //             }
+        //             console.log("OK");
+        //         }
+        //     }
+        // );
 
+    },
+
+    Get_event_nap_tien_log: async function (socket_io) {
+        await contractMM.events.nap_tien_log(
+            {
+                filter: {},
+                fromBlock: "latest"
+                //fromBlock: 0,
+                //toBlock: "latest"
+            }, function (err, events) {
+                if (!err) {
+                    console.log("******event nap_tien_log");
+                    //console.log(events);
+                    if (events) {
+                        console.log(events.returnValues.sender);
+                        console.log(events.returnValues._id);
+                        console.log(web3.utils.fromWei(events.returnValues.amount, "ether"))
+
+                        socket_io.to("rid_"+events.returnValues.sender.substring(2)).emit("receive_message", "hello from event nap_tien_log");
+                        //socket_io.emit("receive_message", "hello from event nap_tien_log");
+                        //socket_io.to("tam_1ec8A7DE32fd487FBd73e008fFfe00D4f36f0650").emit("receive_message", "hello from event nap_tien_log");
+                    }
+                } else {
+                    console.log("ERROR");
+                }
+            });
     },
 
     getContractMM: function () {
         return contractMM;
     },
 };
-
-
-// import MetamaskValue from "./MetamaskValue"
-// import Web3 from 'web3';
-
-// const ABI = MetamaskValue.SM_PAYMENT_ABI;
-// const ERC20_ABI = MetamaskValue.ERC20_ABI;
-// export const SM_PAYMENT_ADDRESS = MetamaskValue.SM_PAYMENT_ADDRESS;
-// const web3 = new Web3(window.ethereum);
-
-// export const ContractMM = new web3.eth.Contract(ABI, SM_PAYMENT_ADDRESS);
-
-// export function GetTokenContract(tokenAddress) {
-//     return new web3.eth.Contract(ERC20_ABI, tokenAddress);
-// }
-
-// export async function GetCurrentMM_Address() {
-//     await window.ethereum.enable();
-//     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-//     var account = accounts[0];
-//     window.ethereum.on('accountsChanged', function (accounts) {
-//         // Time to reload your interface with accounts[0]!
-//         account = accounts[0];
-//     });
-
-//     return account;
-// }
-
-// export async function GetTransactionDetail(txnHash){
-//     return await web3.eth.getTransaction(txnHash);
-// }
-
-// export function GetToWei(amount){
-//     return web3.utils.toWei(amount, 'ether');
-// }
-
-// export function GetToEth(balance){
-//     return web3.utils.fromWei(balance, "ether");
-// }

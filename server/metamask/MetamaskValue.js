@@ -307,7 +307,7 @@ const MetamaskValue = {
         }
     ],
 
-    SM_PAYMENT_ADDRESS:"0x075A5289be36b94Df50aFCc6726571746b558Db7",
+    SM_PAYMENT_ADDRESS:"0x3D682BeAFABA1cc5531476a2108a99Fd65331031",
     SM_PAYMENT_ABI:[
         {
             "inputs": [
@@ -368,21 +368,18 @@ const MetamaskValue = {
         {
             "inputs": [
                 {
-                    "internalType": "address[]",
-                    "name": "tokenAddress",
-                    "type": "address[]"
-                },
-                {
-                    "internalType": "uint256[]",
-                    "name": "ratioBuy_arr",
-                    "type": "uint256[]"
-                },
-                {
-                    "internalType": "uint256[]",
-                    "name": "ratioSell_arr",
-                    "type": "uint256[]"
+                    "internalType": "uint256",
+                    "name": "_id",
+                    "type": "uint256"
                 }
             ],
+            "name": "nap_tien",
+            "outputs": [],
+            "stateMutability": "payable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
             "stateMutability": "nonpayable",
             "type": "constructor"
         },
@@ -409,6 +406,31 @@ const MetamaskValue = {
                 }
             ],
             "name": "have_human_join",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "uint256",
+                    "name": "_id",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "nap_tien_log",
             "type": "event"
         },
         {

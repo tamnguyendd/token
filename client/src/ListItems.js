@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, Card, Row, Col } from 'react-bootstrap';
 import Web3 from 'web3';
 
-import MetamaskValue from './MetamaskValue';
+import MetamaskValue from './metamask_components/MetamaskValue.js'
 
 class Item extends React.Component {
 

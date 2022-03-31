@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Table, Modal, Button, Form, Row, Col, ToastContainer, Toast } from 'react-bootstrap';
-import { SM_PAYMENT_ADDRESS, ContractMM, GetTokenContract, GetCurrentMM_Address, GetToWei, GetToEth } from '../metamask_components/metamask_utility.js';
+import { mm_util } from '../metamask_components/metamask_utility.js';
 import NumberFormat from "react-number-format";
 import loading_img from "../loading.gif";
 
@@ -27,6 +27,14 @@ class MyTokenAsset extends React.Component {
                 deplay: 3000
             }
         };
+
+        
+    }
+
+    componentDidUpdate() {
+        // socket.on("receive_message", (data) => {
+        //     alert(data);
+        // });
     }
 
     async componentDidMount() {
@@ -36,22 +44,22 @@ class MyTokenAsset extends React.Component {
     async getListToken() {
         try {
             // it will wait here untill function a finishes
-            var data = await ContractMM.methods.number_of_token().call();
+            var data = await mm_util.ContractMM.methods.number_of_token().call();
             this.setState({ number_of_token: data });
-            var crMetamaskAddress = await GetCurrentMM_Address();
+            var crMetamaskAddress = await mm_util.GetCurrentMM_Address();
 
             var tokenList = [];
             for (var i = 0; i < this.state.number_of_token; i++) {
-                var token_info = await ContractMM.methods.get_token_info(i).call();
-                var name = await GetTokenContract(token_info[0]).methods.name().call();
-                var symbol = await GetTokenContract(token_info[0]).methods.symbol().call();
-                var balance = await GetTokenContract(token_info[0]).methods.balanceOf(crMetamaskAddress).call();
+                var token_info = await mm_util.ContractMM.methods.get_token_info(i).call();
+                var name = await mm_util.GetTokenContract(token_info[0]).methods.name().call();
+                var symbol = await mm_util.GetTokenContract(token_info[0]).methods.symbol().call();
+                var balance = await mm_util.GetTokenContract(token_info[0]).methods.balanceOf(crMetamaskAddress).call();
                 var token = {
                     _index: i,
                     _token: token_info[0],
                     _Name: name,
                     _Symbol: symbol,
-                    _Balance: GetToEth(balance),
+                    _Balance: mm_util.GetToEth(balance),
                     _status_Buy: token_info[1],
                     _status_Sell: token_info[2],
                     _Ratio_Buy: token_info[3],
@@ -80,8 +88,12 @@ class MyTokenAsset extends React.Component {
     };
 
     async ShowDepositModal(token) {
+        // socket.emit("join_room", "hey, from Send To SM");
+        // socket.emit("send_message", "he wby");
+
+
         var crToken = { ...token };
-        crToken._FromAddress = await GetCurrentMM_Address();
+        crToken._FromAddress = await mm_util.GetCurrentMM_Address();
         crToken._Amount = 0;
         await this.setState({ currentDepositToken: crToken });
         await this.setState({ isShowDepositModal: true });
@@ -99,9 +111,9 @@ class MyTokenAsset extends React.Component {
 
             var token = this.state.currentDepositToken;
 
-            var senderAddress = await GetCurrentMM_Address();
-            var toAddress = SM_PAYMENT_ADDRESS;
-            var weiAmount = GetToWei(token._Amount);
+            var senderAddress = await mm_util.GetCurrentMM_Address();
+            var toAddress = mm_util.SM_PAYMENT_ADDRESS;
+            var weiAmount = mm_util.GetToWei(token._Amount);
 
             // 1) save to Mongo DB to get payment ID
             var mgoResponse = await fetch(`${process.env.REACT_APP_API_URL}token/add`, {
@@ -126,7 +138,7 @@ class MyTokenAsset extends React.Component {
             console.log(paymentID);
 
             // 2) metamask approval
-            var approve = await GetTokenContract(token._token).methods.approve(SM_PAYMENT_ADDRESS, weiAmount)
+            var approve = await mm_util.GetTokenContract(token._token).methods.approve(mm_util.SM_PAYMENT_ADDRESS, weiAmount)
                 .send({
                     from: senderAddress
                 });
@@ -134,7 +146,7 @@ class MyTokenAsset extends React.Component {
             console.log(approve);
 
             // 3) call smart contract
-            var rs = await ContractMM.methods.deposit_by_Token(
+            var rs = await mm_util.ContractMM.methods.deposit_by_Token(
                 paymentID,
                 token._index,
                 weiAmount
@@ -173,7 +185,7 @@ class MyTokenAsset extends React.Component {
 
     async ShowTransferModal(token) {
         var crToken = { ...token };
-        crToken._FromAddress = await GetCurrentMM_Address();
+        crToken._FromAddress = await mm_util.GetCurrentMM_Address();
         crToken._ToAddress = "";
         crToken._Amount = 0;
         await this.setState({ currentTranferToken: crToken });
@@ -192,10 +204,10 @@ class MyTokenAsset extends React.Component {
 
             var token = this.state.currentTranferToken;
 
-            var senderAddress = await GetCurrentMM_Address();
-            var weiAmount = GetToWei(token._Amount);
+            var senderAddress = await mm_util.GetCurrentMM_Address();
+            var weiAmount = mm_util.GetToWei(token._Amount);
 
-            var transfer = await GetTokenContract(token._token).methods.transfer(token._ToAddress, weiAmount)
+            var transfer = await mm_util.GetTokenContract(token._token).methods.transfer(token._ToAddress, weiAmount)
                 .send({
                     from: senderAddress
                 });
@@ -244,6 +256,9 @@ class MyTokenAsset extends React.Component {
 
     render() {
 
+        // socket.on("FromAPI", data => {
+        //     console.log(data);
+        // });
         var renderContent = <></>;
         if (this.state.isLoading === true) {
             renderContent = <>Please wait!</>
