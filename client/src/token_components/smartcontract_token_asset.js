@@ -11,11 +11,8 @@ class SmartContractTokenAsset extends React.Component {
         this.state = {
             isLoading: true,
 
-            isShowDepositModal: false,
-            currentDepositToken: {},
-
-            isShowTransferModal: false,
-            currentTranferToken: {},
+            isShowWithdrawModal: false,
+            currentWithdrawToken: {},
 
             isSaving: false,
 
@@ -41,6 +38,14 @@ class SmartContractTokenAsset extends React.Component {
             var crMetamaskAddress = await mm_util.GetCurrentMM_Address();
 
             var tokenList = [];
+            tokenList.push({
+                _index: -1,
+                _token: process.env.REACT_APP_BLOCKCHAIN_NET,
+                _Name: process.env.REACT_APP_BLOCKCHAIN_NET,
+                _Symbol: process.env.REACT_APP_BLOCKCHAIN_NET,
+                _Balance: await mm_util.GetDefaultBalance(mm_util.SM_PAYMENT_ADDRESS)
+            });
+
             for (var i = 0; i < this.state.number_of_token; i++) {
                 var token_info = await mm_util.ContractMM.methods.get_token_info(i).call();
                 var name = await mm_util.GetTokenContract(token_info[0]).methods.name().call();
@@ -58,8 +63,6 @@ class SmartContractTokenAsset extends React.Component {
                     _Ratio_Sell: token_info[4]
                 }
                 tokenList.push(token);
-                // console.log(token_info);
-                // console.log(symbol);
             }
 
             this.setState({ TokenList: tokenList });
@@ -70,108 +73,59 @@ class SmartContractTokenAsset extends React.Component {
         }
     }
 
-    //1) Deposit Modal
-    async closeDepositModal() {
-        await this.setState({ isShowDepositModal: false });
-        await this.setState({ currentDepositToken: {} });
+    //1) Withdraw Modal
+    async closeWithdrawModal() {
+        await this.setState({ isShowWithdrawModal: false });
     };
 
-    async ShowDepositModal(token) {
+    async ShowWithdrawModal(token) {
         var crToken = { ...token };
-        crToken._FromAddress = await mm_util.GetCurrentMM_Address();
+        crToken._All = false;
         crToken._Amount = 0;
-        await this.setState({ currentDepositToken: crToken });
-        await this.setState({ isShowDepositModal: true });
+        await this.setState({ currentWithdrawToken: crToken });
+        await this.setState({ isShowWithdrawModal: true });
     }
 
-    changeDepositForm(namestate, value) {
-        var crData = this.state.currentDepositToken;
+    changeWithdrawForm(namestate, value) {
+        var crData = this.state.currentWithdrawToken;
         crData[namestate] = value;
-        this.setState({ currentDepositToken: crData });
+        if (namestate === "_All" && value === true) {
+            crData._Amount = crData._Balance;
+        }
+        this.setState({ currentWithdrawToken: crData });
     }
 
-    async DepositToken() {
+    async WithdrawToken() {
         try {
             this.setState({ isSaving: true });
 
-            var token = this.state.currentDepositToken;
+            var crSelectedData = this.state.currentWithdrawToken;
 
             var senderAddress = await mm_util.GetCurrentMM_Address();
-            var weiAmount = mm_util.GetToWei(token._Amount);
+            var weiAmount = mm_util.GetToWei(crSelectedData._Amount);
 
-            var approve = await mm_util.GetTokenContract(token._token).methods.approve(mm_util.SM_PAYMENT_ADDRESS, weiAmount)
-                .send({
-                    from: senderAddress
-                });
+            if (crSelectedData._index === -1) { //withdraw default mainnet coin
 
-            console.log(approve);
-
-            var rs = await mm_util.ContractMM.methods.deposit_by_Token(
-                token._index,
-                weiAmount
-            ).send(
-                {
-                    from: senderAddress
-                    //value: web3.utils.toWei($("#txt_Amount").val(), "ether")
+                // withdraw all
+                if (crSelectedData._All == true) {
+                    await mm_util.ContractMM.methods.withdraw_default_aLL()
+                        .send({ from: senderAddress });
+                } else {
+                    await mm_util.ContractMM.methods.withdraw_default(weiAmount)
+                    .send({ from: senderAddress });
                 }
-            );
+            } else {
+                // withdraw token
 
-            //reload list
-            await this.getListToken();
-
-            //alert("Add OK!");
-            this.showToast(true);
-
-            console.log(rs);
-
-            //close modal
-            await this.closeDepositModal();
-        } catch (err) {
-            //alert("Add NOT OK!");
-            this.showToast(false);
-            console.log(err);
-        }
-
-        this.setState({ isSaving: false });
-    }
-    // The end Deposit Modal
-
-    //2) Transfer
-    async closeTransferModal() {
-        await this.setState({ isShowTransferModal: false });
-        await this.setState({ currentTranferToken: {} });
-    }
-
-    async ShowTransferModal(token) {
-        var crToken = { ...token };
-        crToken._FromAddress = await mm_util.GetCurrentMM_Address();
-        crToken._ToAddress = "";
-        crToken._Amount = 0;
-        await this.setState({ currentTranferToken: crToken });
-        await this.setState({ isShowTransferModal: true });
-    }
-
-    async changeTransferForm(namestate, value) {
-        var crData = this.state.currentTranferToken;
-        crData[namestate] = value;
-        await this.setState({ currentTranferToken: crData });
-    }
-
-    async TransferToken() {
-        try {
-            this.setState({ isSaving: true });
-
-            var token = this.state.currentTranferToken;
-
-            var senderAddress = await mm_util.GetCurrentMM_Address();
-            var weiAmount = mm_util.GetToWei(token._Amount);
-
-            var transfer = await mm_util.GetTokenContract(token._token).methods.transfer(token._ToAddress, weiAmount)
-                .send({
-                    from: senderAddress
-                });
-
-            console.log(transfer);
+                // withdraw all tokens
+                if (crSelectedData._All == true) {
+                    await mm_util.ContractMM.methods.withdraw_token_all(crSelectedData._index)
+                        .send({ from: senderAddress });
+                }else {
+                    await mm_util.ContractMM.methods.withdraw_token(crSelectedData._index, weiAmount)
+                    .send({ from: senderAddress });
+                }
+            }
 
             //reload list
             await this.getListToken();
@@ -180,7 +134,7 @@ class SmartContractTokenAsset extends React.Component {
             this.showToast(true);
 
             //close modal
-            await this.closeTransferModal();
+            await this.closeWithdrawModal();
         } catch (err) {
             //alert("Add NOT OK!");
             this.showToast(false);
@@ -189,7 +143,7 @@ class SmartContractTokenAsset extends React.Component {
 
         this.setState({ isSaving: false });
     }
-    // The end Transfer Modal
+    // The end Withdraw Modal
 
     closeToast() {
         var toast = this.state.ToastData;
@@ -225,8 +179,8 @@ class SmartContractTokenAsset extends React.Component {
                 items.push(
                     <tr key={index}>
                         <td>{index + 1}</td>
-                        <td>{value._Symbol}</td>
-                        <td>
+
+                        <td className='text-end'>
                             <NumberFormat value={value._Balance}
                                 decimalSeparator="."
                                 displayType="text"
@@ -234,9 +188,9 @@ class SmartContractTokenAsset extends React.Component {
                                 thousandSeparator={true}
                                 allowNegative={true} />
                         </td>
+                        <td>{value._Symbol}</td>
                         <td>
-                            {/* <Button variant="primary" onClick={async () => await this.ShowDepositModal(value)}>Send to SM</Button>&nbsp;
-                            <Button variant="primary" onClick={async () => await this.ShowTransferModal(value)}>Transfer</Button> */}
+                            <Button variant="primary" onClick={(e) => this.ShowWithdrawModal(value)}>Withdraw</Button>
                         </td>
                     </tr>);
             }
@@ -248,9 +202,9 @@ class SmartContractTokenAsset extends React.Component {
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Symbol</th>
                                 <th>Balance</th>
-                                <th></th>
+                                <th>Symbol</th>
+                                <th>withdraw</th>
 
                             </tr>
                         </thead>
@@ -259,46 +213,19 @@ class SmartContractTokenAsset extends React.Component {
                         </tbody>
                     </Table>
 
-                    {/* Modal Deposit */}
-                    <Modal show={this.state.isShowDepositModal}
+                    {/* Modal Withdraw */}
+                    <Modal show={this.state.isShowWithdrawModal}
                         size="lg"
                         aria-labelledby="contained-modal-title-vcenter"
                         centered
-                        onHide={() => this.closeDepositModal()}
+                        onHide={() => this.closeWithdrawModal()}
                         backdrop="static"
                     >
                         <Modal.Header closeButton>
-                            <Modal.Title>Send to SM</Modal.Title>
+                            <Modal.Title>Withdraw</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
                             <Form>
-                                <Form.Group as={Row} className="mb-3">
-                                    <Form.Label column sm={2}>
-                                        From
-                                    </Form.Label>
-                                    <Col sm={10}>
-                                        <Form.Control value={this.state.currentDepositToken._FromAddress} disabled />
-                                    </Col>
-                                </Form.Group>
-
-                                <Form.Group as={Row} className="mb-3">
-                                    <Form.Label column sm={2}>
-                                        To
-                                    </Form.Label>
-                                    <Col sm={10}>
-                                        <Form.Control value={this.state.currentDepositToken._token} disabled />
-                                    </Col>
-                                </Form.Group>
-
-                                <Form.Group as={Row} className="mb-3">
-                                    <Form.Label column sm={2}>
-                                        Token
-                                    </Form.Label>
-                                    <Col sm={10}>
-                                        <Form.Control value={this.state.currentDepositToken._Symbol} disabled />
-                                    </Col>
-                                </Form.Group>
-
                                 <Form.Group as={Row} className="mb-3">
                                     <Form.Label column sm={2}>
                                         Amount
@@ -306,86 +233,29 @@ class SmartContractTokenAsset extends React.Component {
                                     <Col sm={3}>
                                         <Form.Control style={{ "textAlign": "right" }}
                                             type="number"
-                                            value={this.state.currentDepositToken._Amount}
-                                            onChange={(e) => this.changeDepositForm("_Amount", e.target.value)} />
+                                            value={this.state.currentWithdrawToken._Amount}
+                                            onChange={(e) => this.changeWithdrawForm("_Amount", e.target.value)}
+                                            disabled={this.state.currentWithdrawToken._All} />
+
+                                    </Col>
+                                    <Col sm={2}>
+                                        <Form.Check type="checkbox" label="All"
+                                            checked={this.state.currentWithdrawToken._All}
+                                            onChange={(event) => this.changeWithdrawForm("_All", event.target.checked)} />
                                     </Col>
                                 </Form.Group>
-
                             </Form>
                         </Modal.Body>
                         <Modal.Footer className='text-center'>
-                            <Button variant="secondary" onClick={() => this.closeDepositModal()}>
+                            <Button variant="secondary" onClick={() => this.closeWithdrawModal()}>
                                 Close
                             </Button>
 
                             {
                                 this.state.isSaving ?
                                     <img src={loading_img} className="loading_img" alt="loading..." /> :
-                                    <Button variant="primary" onClick={() => this.DepositToken()}>
-                                        Send
-                                    </Button>
-                            }
-
-                        </Modal.Footer>
-                    </Modal>
-
-                    {/* Modal Transfer */}
-                    <Modal show={this.state.isShowTransferModal}
-                        size="lg"
-                        aria-labelledby="contained-modal-title-vcenter"
-                        centered
-                        onHide={() => this.closeTransferModal()}
-                        backdrop="static"
-                    >
-                        <Modal.Header closeButton>
-                            <Modal.Title>Transfer</Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
-                            <Form>
-                                <Form.Group as={Row} className="mb-3">
-                                    <Form.Label column sm={2}>
-                                        From
-                                    </Form.Label>
-                                    <Col sm={10}>
-                                        <Form.Control value={this.state.currentTranferToken._FromAddress} disabled />
-                                    </Col>
-                                </Form.Group>
-
-                                <Form.Group as={Row} className="mb-3">
-                                    <Form.Label column sm={2}>
-                                        To
-                                    </Form.Label>
-                                    <Col sm={10}>
-                                        <Form.Control
-                                            value={this.state.currentTranferToken._ToAddress}
-                                            onChange={(e) => this.changeTransferForm("_ToAddress", e.target.value)} />
-                                    </Col>
-                                </Form.Group>
-
-                                <Form.Group as={Row} className="mb-3">
-                                    <Form.Label column sm={2}>
-                                        Amount
-                                    </Form.Label>
-                                    <Col sm={3}>
-                                        <Form.Control style={{ "textAlign": "right" }}
-                                            type="number"
-                                            value={this.state.currentTranferToken._Amount}
-                                            onChange={(e) => this.changeTransferForm("_Amount", e.target.value)} />
-                                    </Col>
-                                </Form.Group>
-
-                            </Form>
-                        </Modal.Body>
-                        <Modal.Footer className='text-center'>
-                            <Button variant="secondary" onClick={() => this.closeTransferModal()}>
-                                Close
-                            </Button>
-
-                            {
-                                this.state.isSaving ?
-                                    <img src={loading_img} className="loading_img" alt="loading..." /> :
-                                    <Button variant="primary" onClick={() => this.TransferToken()}>
-                                        Transfer
+                                    <Button variant="primary" onClick={() => this.WithdrawToken()}>
+                                        Withdraw
                                     </Button>
                             }
 

@@ -307,7 +307,7 @@ const MetamaskValue = {
         }
     ],
 
-    SM_PAYMENT_ADDRESS:"0x3D682BeAFABA1cc5531476a2108a99Fd65331031",
+    SM_PAYMENT_ADDRESS:"0x704A89c5a03E61c1e864046Daf17A00Ae5cF26C9",
     SM_PAYMENT_ABI:[
         {
             "inputs": [
@@ -346,34 +346,11 @@ const MetamaskValue = {
             "inputs": [
                 {
                     "internalType": "uint256",
-                    "name": "payment_id",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "token_order",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "amount",
-                    "type": "uint256"
-                }
-            ],
-            "name": "deposit_by_Token",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "uint256",
                     "name": "_id",
                     "type": "uint256"
                 }
             ],
-            "name": "nap_tien",
+            "name": "deposit_by_default",
             "outputs": [],
             "stateMutability": "payable",
             "type": "function"
@@ -382,31 +359,6 @@ const MetamaskValue = {
             "inputs": [],
             "stateMutability": "nonpayable",
             "type": "constructor"
-        },
-        {
-            "anonymous": false,
-            "inputs": [
-                {
-                    "indexed": true,
-                    "internalType": "uint256",
-                    "name": "payment_id",
-                    "type": "uint256"
-                },
-                {
-                    "indexed": false,
-                    "internalType": "uint256",
-                    "name": "token_order",
-                    "type": "uint256"
-                },
-                {
-                    "indexed": false,
-                    "internalType": "uint256",
-                    "name": "amount",
-                    "type": "uint256"
-                }
-            ],
-            "name": "have_human_join",
-            "type": "event"
         },
         {
             "anonymous": false,
@@ -430,7 +382,61 @@ const MetamaskValue = {
                     "type": "uint256"
                 }
             ],
-            "name": "nap_tien_log",
+            "name": "deposit_by_default_log",
+            "type": "event"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_id",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "token_order",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "deposit_by_token",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "uint256",
+                    "name": "_id",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "token_order",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "deposit_by_token_log",
             "type": "event"
         },
         {
@@ -462,6 +468,57 @@ const MetamaskValue = {
                 }
             ],
             "name": "update_token_forpayment",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "withdraw_default",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "withdraw_default_aLL",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "orderToken",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "withdraw_token",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "orderToken",
+                    "type": "uint256"
+                }
+            ],
+            "name": "withdraw_token_all",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"

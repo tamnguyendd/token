@@ -2,7 +2,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
 import React from 'react';
-import { Button, Form, Navbar, Nav, Container, Card } from 'react-bootstrap';
+import { Button, Form, Navbar, Nav, Container, Card, NavDropdown } from 'react-bootstrap';
 
 import { BrowserRouter as Router, Route, Routes, Navigate, Link } from 'react-router-dom';
 
@@ -17,12 +17,13 @@ import Edit from "./components/edit";
 import Create from "./components/create";
 
 import ChanLe from './chanle/chanle';
+import Deposit_History from './chanle/deposit_history';
 
 import TokenManagement from './token_components/token_management';
 import MyTokenAsset from './token_components/my_token_asset';
 import SmartContractTokenAsset from './token_components/smartcontract_token_asset';
 
-import {sk} from './socket/socket_uti.js';
+import { sk } from './socket/socket_uti.js';
 
 class App extends React.Component {
 
@@ -91,18 +92,26 @@ class App extends React.Component {
               <Card.Header className='app-header'>
                 <Navbar bg="dark" variant="dark">
                   <Container>
-                    <Navbar.Brand  as={Link} to="/home">S-Coin</Navbar.Brand>
+                    <Navbar.Brand as={Link} to="/home">S-Coin</Navbar.Brand>
                     <Nav className="me-auto">
                       <Nav.Link as={Link} to="/home">Home</Nav.Link>
-                      <Nav.Link as={Link} to="/coin">Coin</Nav.Link>
-                      <Nav.Link as={Link} to="/token">Token</Nav.Link>
-                      <Nav.Link as={Link} to="/my-asset">My Asset</Nav.Link>
-                      <Nav.Link as={Link} to="/smartcontract-asset">SM Asset</Nav.Link>
-                      <Nav.Link as={Link} to="/chanle">Chan hay Le</Nav.Link>
-                      <Nav.Link as={Link} to="/layout2">Features</Nav.Link>
-                      {/* 
-                  <Nav.Link href="#pricing">Pricing</Nav.Link> */}
+
+                      <NavDropdown title="Game" id="navbarScrollingDropdown">
+                        <NavDropdown.Item as={Link} to="/chanle">Chan hay Le</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/deposit_history">Lịch sử nạp tiền</NavDropdown.Item>
+                      </NavDropdown>
+
+                      <NavDropdown title="Tài sản" id="navbarScrollingDropdown">
+                        <NavDropdown.Item as={Link} to="/my-asset">My Asset</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/smartcontract-asset">SM Asset</NavDropdown.Item>
+                      </NavDropdown>
+
+                      <NavDropdown title="Quản lý" id="navbarScrollingDropdown">
+                        <NavDropdown.Item as={Link} to="/coin">Coin</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/token">Token</NavDropdown.Item>
+                      </NavDropdown>
                     </Nav>
+
                     <Form className="d-flex">
                       <div className='text-white'>{this.state.MetaMaskAddress}</div>
                       <Button variant="outline-light" onClick={connectMetamask}><FontAwesomeIcon icon={faWallet} /></Button>
@@ -113,25 +122,25 @@ class App extends React.Component {
               <Card.Body className='app-body'>
                 <Routes>
                   <Route exact path="/" element={<Navigate replace to="/home" />}> </Route>
-                  
+
                   <Route exact path='/home' element={<ListItems MetaMaskAddress={this.state.MetaMaskAddress} />} />
 
-                  <Route exact path='/coin' element={<RecordList  />} />
-                  <Route exact path='/token' element={<TokenManagement  />} />
-                  <Route exact path='/my-asset' element={<MyTokenAsset  />} />
-                  <Route exact path='/smartcontract-asset' element={<SmartContractTokenAsset  />} />
+                  <Route exact path='/coin' element={<RecordList />} />
+                  <Route exact path='/token' element={<TokenManagement />} />
+                  <Route exact path='/my-asset' element={<MyTokenAsset />} />
+                  <Route exact path='/smartcontract-asset' element={<SmartContractTokenAsset />} />
 
                   <Route path="/edit/:id" element={<Edit />} />
                   <Route path="/create" element={<Create />} />
 
 
                   <Route exact path='/chanle' element={<ChanLe />} />
+                  <Route exact path='/deposit_history' element={<Deposit_History />} />
 
                   <Route exact path='/layout2' element={<LoginPage />} />
 
                   <Route path='*' element={<Navigate replace to="/home" />}></Route>
-                  {/* <LoginLayoutRoute path="/layout1" component={LoginPage} />   */}
-                  {/* <DashboardRoute path="/layout2" component={UserPage} />   */}
+
                 </Routes>
               </Card.Body>
               <Card.Footer className="text-muted">Footer</Card.Footer>

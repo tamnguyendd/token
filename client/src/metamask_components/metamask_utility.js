@@ -9,7 +9,7 @@ const ContractMM = new web3.eth.Contract(ABI, SM_PAYMENT_ADDRESS);
 
 export const mm_util = {
     SM_PAYMENT_ADDRESS: SM_PAYMENT_ADDRESS,
-    ContractMM, ContractMM,
+    ContractMM: ContractMM,
     GetTokenContract: function (tokenAddress) {
         return new web3.eth.Contract(ERC20_ABI, tokenAddress);
     },
@@ -28,6 +28,11 @@ export const mm_util = {
 
     GetTransactionDetail: async function (txnHash) {
         return await web3.eth.getTransaction(txnHash);
+    },
+
+    GetDefaultBalance: async function (address) {
+        const ethBalance = await web3.eth.getBalance(address);
+        return web3.utils.fromWei(ethBalance, "ether");
     },
 
     GetToWei: function (amount) {

@@ -2,8 +2,9 @@ import React from 'react';
 import { Table, Modal, Button, Form, Row, Col, ToastContainer, Toast } from 'react-bootstrap';
 import { mm_util } from '../metamask_components/metamask_utility.js';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPenToSquare, faPlus, faArrowsRotate } from "@fortawesome/free-solid-svg-icons";
 import loading_img from "../loading.gif";
+import { my_server } from '../common/my_server.js';
 
 class TokenManagement extends React.Component {
 
@@ -289,6 +290,23 @@ class TokenManagement extends React.Component {
         this.setState({ isSaving: false });
     }
     // The end Deposit Modal
+
+    async syncListToDB(){
+
+        var mgoResponse = await fetch(`${process.env.REACT_APP_API_URL}token/sync_list_to_db`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                list_tokens: this.state.TokenList
+            }),
+        });
+        var data = await mgoResponse.json();
+        console.log(data);
+        this.showToast(true);
+    }
+
     closeToast() {
         var toast = this.state.ToastData;
         toast.show = false;
@@ -360,6 +378,10 @@ class TokenManagement extends React.Component {
                             {items}
                         </tbody>
                     </Table>
+
+                    <div className='text-center'>
+                        <Button onClick={() => this.syncListToDB()}>Sync List To DB<FontAwesomeIcon icon={faArrowsRotate} /></Button>
+                    </div>
 
                     {/* Modal Update */}
                     <Modal show={this.state.isShowUpdateModal}

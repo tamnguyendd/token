@@ -18,8 +18,7 @@ io.on('connection', (socket) => {
   console.log(socket.id);
 
   socket.on("join_room", async (room_id) => {
-    //socket.join("tam_1ec8A7DE32fd487FBd73e008fFfe00D4f36f0650");
-    room ="rid_"+room_id.substring(2);
+    room = room_id.toLowerCase();
     socket.join(room);
     console.log(room);
 
@@ -54,16 +53,25 @@ const dbo = require("./db/conn");
 const Web3 = require('web3');
 app.use("/scripts", express.static(__dirname + "/node_modules/web3.js-browser/build/"));
 const MetamaskUtil = require('./metamask/metamask_utility');
+const chubaove = require('./commons/chubaove')
 
 
 server.listen(port, async () => {
   // perform a database connection when server starts
-  dbo.connectToServer(function (err) {
+  await dbo.connectToServer(async function (err) {
     if (err) console.error(err);
 
+    //CHU BAO VE TUAN TRA
+    setInterval(async() => {
+      await chubaove.Get_game_do_NOT_deposit_YET();
+    }, process.env.CHUBAOVE_TIME_INTERVAL);
+    
   });
+
   console.log(`Server is running on port: ${port}`);
 
-  await MetamaskUtil.Get_event_have_human_join();
-  await MetamaskUtil.Get_event_nap_tien_log(io);
+  await MetamaskUtil.Get_event_deposit_by_token_log(io, chubaove);
+  await MetamaskUtil.Get_event_deposit_by_default_log(io, chubaove);
+
+  
 });

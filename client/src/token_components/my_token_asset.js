@@ -49,6 +49,13 @@ class MyTokenAsset extends React.Component {
             var crMetamaskAddress = await mm_util.GetCurrentMM_Address();
 
             var tokenList = [];
+            tokenList.push({
+                _index: -1,
+                _token: process.env.REACT_APP_BLOCKCHAIN_NET,
+                _Name: process.env.REACT_APP_BLOCKCHAIN_NET,
+                _Symbol: process.env.REACT_APP_BLOCKCHAIN_NET,
+                _Balance: await mm_util.GetDefaultBalance(crMetamaskAddress)
+            });
             for (var i = 0; i < this.state.number_of_token; i++) {
                 var token_info = await mm_util.ContractMM.methods.get_token_info(i).call();
                 var name = await mm_util.GetTokenContract(token_info[0]).methods.name().call();
@@ -270,7 +277,7 @@ class MyTokenAsset extends React.Component {
                     <tr key={index}>
                         <td>{index + 1}</td>
                         <td>{value._Symbol}</td>
-                        <td>
+                        <td className='text-end'>
                             <NumberFormat value={value._Balance}
                                 decimalSeparator="."
                                 displayType="text"

@@ -15,9 +15,9 @@ module.exports = {
         return await contractMM.methods.number_of_token().call();
     },
 
-    Get_event_have_human_join: async function () {
+    Get_event_deposit_by_token_log: async function (socket_io, chubaove) {
 
-        await contractMM.events.have_human_join(
+        await contractMM.events.deposit_by_token_log(
             {
                 filter: {},
                 fromBlock: "latest"
@@ -25,72 +25,111 @@ module.exports = {
                 //toBlock: "latest"
             }, function (err, events) {
                 if (!err) {
-                    console.log("******event_have_human_join OK *******");
+                    console.log("******event_deposit_by_token_log OK *******");
                     //console.log(events);
                     if (events) {
-                        console.log(events.returnValues.payment_id);
-                        console.log(events.returnValues.token_order);
-                        console.log(events.returnValues.amount);
-                        console.log(web3.utils.fromWei(events.returnValues.amount, "ether"))
+                        room = events.returnValues.sender.toLowerCase()
+                        socket_io.to(room).emit("receive_message", "hello from deposit_by_token_log");
+
+                        //chu bao ve update
+                        chubaove.Update_deposit_Done([{
+                            id: events.returnValues._id,
+                            token_order: events.returnValues.token_order,
+                            amount: module.exports.GetToEth(events.returnValues.amount)
+                        }]);
                     }
                 } else {
                     console.log("ERROR");
                 }
             });
-
-        // await contractMM.getPastEvents(
-        //     "have_human_join",
-        //     {
-        //         //filter: { order_id: [2] },
-        //         //filter: {value: [117,50]},
-        //         //filter: {payment_id:["16480401241271143642922538634"]}, 
-        //         //fromBlock: "latest" ,
-        //         //fromBlock: 0 ,
-        //         //toBlock: "latest"
-        //         filter: {},
-        //         fromBlock: "latest"
-        //     }, (errors, events) => {
-        //         if (!errors) {
-        //             if (events.length > 0) {
-        //                 console.log(events[0].returnValues.payment_id);
-        //                 console.log(events[0].returnValues.token_order);
-        //                 console.log(events[0].returnValues.amount);
-        //                 console.log(web3.utils.fromWei(events[0].returnValues.amount, "ether"))
-        //             }
-        //             console.log("OK");
-        //         }
-        //     }
-        // );
-
     },
 
-    Get_event_nap_tien_log: async function (socket_io) {
-        await contractMM.events.nap_tien_log(
+    Get_event_deposit_by_default_log: async function (socket_io, chubaove) {
+        await contractMM.events.deposit_by_default_log(
             {
                 filter: {},
                 fromBlock: "latest"
-                //fromBlock: 0,
-                //toBlock: "latest"
             }, function (err, events) {
                 if (!err) {
-                    console.log("******event nap_tien_log");
-                    //console.log(events);
+                    console.log("******event deposit_by_default_log");
                     if (events) {
-                        console.log(events.returnValues.sender);
-                        console.log(events.returnValues._id);
-                        console.log(web3.utils.fromWei(events.returnValues.amount, "ether"))
+                        room = events.returnValues.sender.toLowerCase()
+                        socket_io.to(room).emit("receive_message", "hello from event deposit_by_default_log");
 
-                        socket_io.to("rid_"+events.returnValues.sender.substring(2)).emit("receive_message", "hello from event nap_tien_log");
-                        //socket_io.emit("receive_message", "hello from event nap_tien_log");
-                        //socket_io.to("tam_1ec8A7DE32fd487FBd73e008fFfe00D4f36f0650").emit("receive_message", "hello from event nap_tien_log");
+                        //chu bao ve update
+                        chubaove.Update_deposit_Done([{
+                            id: events.returnValues._id,
+                            token_order: -1,
+                            amount: module.exports.GetToEth(events.returnValues.amount)
+                        }]);
                     }
                 } else {
-                    console.log("ERROR");
+                    console.log("contractMM.events.deposit_by_default_log ERROR: " + err);
                 }
             });
+    },
+
+    ChuBaoVe_Get_event_deposit_by_default_log: async function (_ids) {
+
+        if (!_ids || _ids.length == 0) return [];
+
+        const results = await contractMM.getPastEvents(
+            "deposit_by_default_log",
+            {
+                filter: { _id: _ids },
+                fromBlock: 0,
+                toBlock: "latest"
+            });
+
+        if (results && results.length > 0) {
+            const depositdata = [];
+            for (var idx = 0; idx < results.length; idx++) {
+                depositdata.push({
+                    id: results[idx].returnValues._id,
+                    token_order: -1,
+                    amount: module.exports.GetToEth(results[idx].returnValues.amount)
+                });
+            }
+            return depositdata;
+        }
+        return [];
+    },
+
+    ChuBaoVe_Get_event_deposit_by_token_log: async function (_ids) {
+
+        if (!_ids || _ids.length == 0) return [];
+
+        const results = await contractMM.getPastEvents(
+            "deposit_by_token_log",
+            {
+                filter: { _id: _ids },
+                fromBlock: 0,
+                toBlock: "latest"
+            });
+
+        if (results && results.length > 0) {
+            const depositdata = [];
+            for (var idx = 0; idx < results.length; idx++) {
+                depositdata.push({
+                    id: results[idx].returnValues._id,
+                    token_order: results[idx].returnValues.token_order,
+                    amount: module.exports.GetToEth(results[idx].returnValues.amount)
+                });
+            }
+            return depositdata;
+        }
+        return [];
     },
 
     getContractMM: function () {
         return contractMM;
     },
+    
+    GetToWei: function (amount) {
+        return web3.utils.toWei(amount, 'ether');
+    },
+
+    GetToEth: function (balance) {
+        return web3.utils.fromWei(balance, "ether");
+    }
 };
