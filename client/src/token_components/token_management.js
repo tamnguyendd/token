@@ -40,12 +40,24 @@ class TokenManagement extends React.Component {
 
     async getListToken() {
         try {
-            // it will wait here untill function a finishes
-            var data = await mm_util.ContractMM.methods.number_of_token().call();
-            this.setState({ number_of_token: data });
-
             var tokenList = [];
-            for (var i = 0; i < this.state.number_of_token; i++) {
+            //get default net token
+            var default_token_info = await mm_util.ContractMM.methods.get_default_payment_info().call();
+            tokenList.push({
+                _index: -1,
+                _token: "",
+                _Name: process.env.REACT_APP_BLOCKCHAIN_NET,
+                _Symbol: process.env.REACT_APP_BLOCKCHAIN_NET,
+                _status_Buy: default_token_info[0],
+                _status_Sell: default_token_info[1],
+                _Ratio_Buy: default_token_info[2],
+                _Ratio_Sell: default_token_info[3]
+            });
+
+            // get tokens
+            var number_of_token = await mm_util.ContractMM.methods.number_of_token().call();
+
+            for (var i = 0; i < number_of_token; i++) {
                 var token_info = await mm_util.ContractMM.methods.get_token_info(i).call();
                 var name = await mm_util.GetTokenContract(token_info[0]).methods.name().call();
                 var symbol = await mm_util.GetTokenContract(token_info[0]).methods.symbol().call();
@@ -100,26 +112,39 @@ class TokenManagement extends React.Component {
 
             var crAddress = await mm_util.GetCurrentMM_Address();
 
-            var rs = await mm_util.ContractMM.methods.update_token_forpayment(
-                token._index,
-                token._status_Buy,
-                token._status_Sell,
-                token._Ratio_Buy,
-                token._Ratio_Sell
-            ).send(
-                {
-                    from: crAddress
-                    //value: web3.utils.toWei($("#txt_Amount").val(), "ether")
-                }
-            );
+            if(token._index === -1){
+                // update default net token
+                await mm_util.ContractMM.methods.update_for_default_payment(
+                    token._status_Buy,
+                    token._status_Sell,
+                    token._Ratio_Buy,
+                    token._Ratio_Sell
+                ).send(
+                    {
+                        from: crAddress
+                    }
+                );
+            }else{
+                // update token
+                await mm_util.ContractMM.methods.update_token_forpayment(
+                    token._index,
+                    token._status_Buy,
+                    token._status_Sell,
+                    token._Ratio_Buy,
+                    token._Ratio_Sell
+                ).send(
+                    {
+                        from: crAddress
+                        //value: web3.utils.toWei($("#txt_Amount").val(), "ether")
+                    }
+                );
+            }
 
             //reload list
             await this.getListToken();
 
             //alert("Update OK!");
             this.showToast(true);
-
-            console.log(rs);
 
             //close modal
             this.closeUpdateModal();
@@ -225,75 +250,9 @@ class TokenManagement extends React.Component {
     }
     // The End Update Modal
 
-    //3) Deposit Modal
-    async closeDepositModal() {
-        await this.setState({ isShowDepositModal: false });
-        await this.setState({ currentDepositToken: {} });
-    };
-
-    async ShowDepositModal(token) {
-        var crToken = { ...token };
-        crToken._FromAddress = await mm_util.GetCurrentMM_Address();
-        crToken._Amount = 0;
-        await this.setState({ currentDepositToken: crToken });
-        await this.setState({ isShowDepositModal: true });
-    }
-
-    changeDepositForm(namestate, value) {
-        var crData = this.state.currentDepositToken;
-        crData[namestate] = value;
-        this.setState({ currentDepositToken: crData });
-    }
-
-    async DepositToken() {
-        try {
-            this.setState({ isSaving: true });
-
-            var token = this.state.currentDepositToken;
-
-            var senderAddress = await mm_util.GetCurrentMM_Address();
-            var weiAmount = mm_util.GetToWei(token._Amount, 'ether');
-
-            var approve = await mm_util.GetTokenContract(token._token).methods.approve(mm_util.SM_PAYMENT_ADDRESS, weiAmount)
-                .send({
-                    from: senderAddress
-                });
-
-            console.log(approve);
-
-            var rs = await mm_util.ContractMM.methods.deposit_by_Token(
-                token._index,
-                token._Amount
-            ).send(
-                {
-                    from: senderAddress
-                    //value: web3.utils.toWei($("#txt_Amount").val(), "ether")
-                }
-            );
-
-            //reload list
-            await this.getListToken();
-
-            //alert("Add OK!");
-            this.showToast(true);
-
-            console.log(rs);
-
-            //close modal
-            this.closeDepositModal();
-        } catch (err) {
-            //alert("Add NOT OK!");
-            this.showToast(false);
-            console.log(err);
-        }
-
-        this.setState({ isSaving: false });
-    }
-    // The end Deposit Modal
-
     async syncListToDB(){
 
-        var mgoResponse = await fetch(`${process.env.REACT_APP_API_URL}token/sync_list_to_db`, {
+        await fetch(`${process.env.REACT_APP_API_URL}token/sync_list_to_db`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -302,8 +261,8 @@ class TokenManagement extends React.Component {
                 list_tokens: this.state.TokenList
             }),
         });
-        var data = await mgoResponse.json();
-        console.log(data);
+        //await mgoResponse.json();
+
         this.showToast(true);
     }
 
@@ -573,76 +532,6 @@ class TokenManagement extends React.Component {
                                     <img src={loading_img} className="loading_img" alt="loading..." /> :
                                     <Button variant="primary" onClick={() => this.SaveAdd()}>
                                         Save Changes
-                                    </Button>
-                            }
-
-                        </Modal.Footer>
-                    </Modal>
-
-                    {/* Modal Deposit */}
-                    <Modal show={this.state.isShowDepositModal}
-                        size="lg"
-                        aria-labelledby="contained-modal-title-vcenter"
-                        centered
-                        onHide={() => this.closeDepositModal()}
-                        backdrop="static"
-                    >
-                        <Modal.Header closeButton>
-                            <Modal.Title>Deposit</Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
-                            <Form>
-                                <Form.Group as={Row} className="mb-3">
-                                    <Form.Label column sm={2}>
-                                        From
-                                    </Form.Label>
-                                    <Col sm={10}>
-                                        <Form.Control value={this.state.currentDepositToken._FromAddress} disabled />
-                                    </Col>
-                                </Form.Group>
-
-                                <Form.Group as={Row} className="mb-3">
-                                    <Form.Label column sm={2}>
-                                        To
-                                    </Form.Label>
-                                    <Col sm={10}>
-                                        <Form.Control value={this.state.currentDepositToken._token} disabled />
-                                    </Col>
-                                </Form.Group>
-
-                                <Form.Group as={Row} className="mb-3">
-                                    <Form.Label column sm={2}>
-                                        Deposit Token
-                                    </Form.Label>
-                                    <Col sm={10}>
-                                        <Form.Control value={this.state.currentDepositToken._Symbol} disabled />
-                                    </Col>
-                                </Form.Group>
-
-                                <Form.Group as={Row} className="mb-3">
-                                    <Form.Label column sm={2}>
-                                        Amount
-                                    </Form.Label>
-                                    <Col sm={3}>
-                                        <Form.Control style={{ "textAlign": "right" }}
-                                            type="number"
-                                            value={this.state.currentDepositToken._Amount}
-                                            onChange={(e) => this.changeDepositForm("_Amount", e.target.value)} />
-                                    </Col>
-                                </Form.Group>
-
-                            </Form>
-                        </Modal.Body>
-                        <Modal.Footer className='text-center'>
-                            <Button variant="secondary" onClick={() => this.closeDepositModal()}>
-                                Close
-                            </Button>
-
-                            {
-                                this.state.isSaving ?
-                                    <img src={loading_img} className="loading_img" alt="loading..." /> :
-                                    <Button variant="primary" onClick={() => this.DepositToken()}>
-                                        Deposit
                                     </Button>
                             }
 

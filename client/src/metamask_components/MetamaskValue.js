@@ -307,7 +307,7 @@ const MetamaskValue = {
         }
     ],
 
-    SM_PAYMENT_ADDRESS:"0x704A89c5a03E61c1e864046Daf17A00Ae5cF26C9",
+    SM_PAYMENT_ADDRESS:"0x87797c9FB298c8a98Fc9C44E56794D8C3e8bD756",
     SM_PAYMENT_ABI:[
         {
             "inputs": [
@@ -442,6 +442,34 @@ const MetamaskValue = {
         {
             "inputs": [
                 {
+                    "internalType": "bool",
+                    "name": "_newBuyStatus",
+                    "type": "bool"
+                },
+                {
+                    "internalType": "bool",
+                    "name": "_newSellStatus",
+                    "type": "bool"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "ratioBuy",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "ratioSell",
+                    "type": "uint256"
+                }
+            ],
+            "name": "update_for_default_payment",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
                     "internalType": "uint256",
                     "name": "token_order",
                     "type": "uint256"
@@ -487,7 +515,7 @@ const MetamaskValue = {
         },
         {
             "inputs": [],
-            "name": "withdraw_default_aLL",
+            "name": "withdraw_default_all",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -537,6 +565,62 @@ const MetamaskValue = {
                     "internalType": "address",
                     "name": "",
                     "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "default_Payment",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "_status_Buy",
+                    "type": "bool"
+                },
+                {
+                    "internalType": "bool",
+                    "name": "_status_Sell",
+                    "type": "bool"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_Ratio_Buy",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_Ratio_Sell",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "get_default_payment_info",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                },
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
                 }
             ],
             "stateMutability": "view",

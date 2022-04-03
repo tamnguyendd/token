@@ -25,7 +25,7 @@ class ChanLe extends React.Component {
                 deplay: 3000
             },
 
-            deposit: 0,
+            balance_points: 0,
 
             token_ddl_data: []
         };
@@ -34,15 +34,20 @@ class ChanLe extends React.Component {
     async componentDidMount() {
         await this.getDataForTokenDropdown();
 
+        let balance = await my_server.CallServer('game/get_received_points',
+            { fromAddress: await mm_util.GetCurrentMM_Address() });
+
+        this.setState({ balance_points: new Intl.NumberFormat().format(balance) });
+
         sk.Get_socket_obj().on("receive_message", async (data) => {
             await this.updateScreen(data);
         });
     }
 
-    async componentWillUnmount (){
+    async componentWillUnmount() {
         this.setState({ token_ddl_data: [] });
 
-        this.setState({ deposit: "" });
+        this.setState({ balance_points: "" });
     }
 
     async getDataForTokenDropdown() {
@@ -51,7 +56,8 @@ class ChanLe extends React.Component {
     }
 
     async updateScreen(message) {
-        await this.setState({ deposit: message });
+        await this.setState({ balance_points: new Intl.NumberFormat().format(message) });
+        //console.log(message);
     };
 
     //1) Deposit Modal(Send to SM)
@@ -78,7 +84,7 @@ class ChanLe extends React.Component {
     changeDepositForm(namestate, value) {
         var crData = this.state.currentDepositToken;
         crData[namestate] = value;
-        if(namestate == "_index" && value != -1){
+        if (namestate == "_index" && value != -1) {
             crData._token = this.state.token_ddl_data.find(e => e._index == value)._token;
         }
         this.setState({ currentDepositToken: crData });
@@ -127,7 +133,7 @@ class ChanLe extends React.Component {
             } else {
                 // nap bang token
                 // can appval truoc roi moi gui den SM
-                await mm_util.GetTokenContract(token._token).methods.approve( mm_util.SM_PAYMENT_ADDRESS, weiAmount)
+                await mm_util.GetTokenContract(token._token).methods.approve(mm_util.SM_PAYMENT_ADDRESS, weiAmount)
                     .send({
                         from: senderAddress
                     });
@@ -185,7 +191,7 @@ class ChanLe extends React.Component {
 
     render() {
 
-        let ddldatahtml = [<option key={-1} defaultValue={-1} value={-1}>{process.env.REACT_APP_BLOCKCHAIN_NET}</option>];
+        let ddldatahtml = [];
         if (this.state.token_ddl_data) {
             for (const [index, value] of this.state.token_ddl_data.entries()) {
                 ddldatahtml.push(<option key={index} value={value._index}>{value._Symbol}</option>);
@@ -194,9 +200,10 @@ class ChanLe extends React.Component {
 
         return (
             <>
-                <Button variant="primary" onClick={async () => await this.ShowDepositModal()}>Nạp Tiền</Button>
-                <a href='./deposit_history' target={'_blank'}>Lịch sử</a>
-                <div>Số dư: {this.state.deposit}</div>
+                <Button variant="primary" onClick={async () => await this.ShowDepositModal()}>Deposit</Button>
+                <br/><a href='./deposit_history' target={'_blank'}>History</a>
+                <div>Balance: {this.state.balance_points} points</div>
+                <a href='./deposit_history' target={'_blank'}>Withdraw</a>
 
                 {/* Modal Send to SM */}
                 <Modal show={this.state.isShowDepositModal}
@@ -207,13 +214,13 @@ class ChanLe extends React.Component {
                     backdrop="static"
                 >
                     <Modal.Header closeButton>
-                        <Modal.Title>Nạp Tiền</Modal.Title>
+                        <Modal.Title>Deposit</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         <Form>
                             <Form.Group as={Row} className="mb-3">
                                 <Form.Label column sm={2}>
-                                    Số lượng
+                                    Amount
                                 </Form.Label>
                                 <Col sm={3}>
                                     <Form.Control style={{ "textAlign": "right" }}
@@ -233,14 +240,14 @@ class ChanLe extends React.Component {
                     </Modal.Body>
                     <Modal.Footer className='text-center'>
                         <Button variant="secondary" onClick={async () => this.closeDepositModal()}>
-                            Thoát
+                            Close
                         </Button>
 
                         {
                             this.state.isSaving ?
                                 <img src={loading_img} className="loading_img" alt="loading..." /> :
                                 <Button variant="primary" onClick={() => this.DepositToken()}>
-                                    Tiếp tục
+                                    Deposit
                                 </Button>
                         }
 

@@ -23,20 +23,24 @@ module.exports = {
                 fromBlock: "latest"
                 //fromBlock: 0,
                 //toBlock: "latest"
-            }, function (err, events) {
+            }, async function (err, events) {
                 if (!err) {
                     console.log("******event_deposit_by_token_log OK *******");
                     //console.log(events);
                     if (events) {
-                        room = events.returnValues.sender.toLowerCase()
-                        socket_io.to(room).emit("receive_message", "hello from deposit_by_token_log");
 
                         //chu bao ve update
-                        chubaove.Update_deposit_Done([{
+                        await chubaove.Update_deposit_Done([{
+                            sender: events.returnValues.sender,
                             id: events.returnValues._id,
                             token_order: events.returnValues.token_order,
                             amount: module.exports.GetToEth(events.returnValues.amount)
                         }]);
+
+                        var totalPoint = await chubaove.Get_Balance_Point_By_Address(events.returnValues.sender.toLowerCase());
+                        room = events.returnValues.sender.toLowerCase();
+                        //console.log("Get_event_deposit_by_token_log Emit: "+ totalPoint);
+                        socket_io.to(room).emit("receive_message", totalPoint);
                     }
                 } else {
                     console.log("ERROR");
@@ -49,19 +53,23 @@ module.exports = {
             {
                 filter: {},
                 fromBlock: "latest"
-            }, function (err, events) {
+            }, async function (err, events) {
                 if (!err) {
                     console.log("******event deposit_by_default_log");
                     if (events) {
-                        room = events.returnValues.sender.toLowerCase()
-                        socket_io.to(room).emit("receive_message", "hello from event deposit_by_default_log");
-
                         //chu bao ve update
-                        chubaove.Update_deposit_Done([{
+                        await chubaove.Update_deposit_Done([{
+                            sender: events.returnValues.sender,
                             id: events.returnValues._id,
                             token_order: -1,
                             amount: module.exports.GetToEth(events.returnValues.amount)
                         }]);
+
+                        var totalPoint = await chubaove.Get_Balance_Point_By_Address(events.returnValues.sender.toLowerCase());
+                        room = events.returnValues.sender.toLowerCase();
+                        //console.log("Get_event_deposit_by_default_log Emit: "+ totalPoint);
+                        socket_io.to(room).emit("receive_message", totalPoint);
+
                     }
                 } else {
                     console.log("contractMM.events.deposit_by_default_log ERROR: " + err);
@@ -85,6 +93,7 @@ module.exports = {
             const depositdata = [];
             for (var idx = 0; idx < results.length; idx++) {
                 depositdata.push({
+                    sender: results[idx].returnValues.sender,
                     id: results[idx].returnValues._id,
                     token_order: -1,
                     amount: module.exports.GetToEth(results[idx].returnValues.amount)
@@ -111,6 +120,7 @@ module.exports = {
             const depositdata = [];
             for (var idx = 0; idx < results.length; idx++) {
                 depositdata.push({
+                    sender: results[idx].returnValues.sender,
                     id: results[idx].returnValues._id,
                     token_order: results[idx].returnValues.token_order,
                     amount: module.exports.GetToEth(results[idx].returnValues.amount)

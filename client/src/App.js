@@ -20,6 +20,7 @@ import ChanLe from './chanle/chanle';
 import Deposit_History from './chanle/deposit_history';
 
 import TokenManagement from './token_components/token_management';
+import TokenPointRatio from './token_components/token_point_ratio';
 import MyTokenAsset from './token_components/my_token_asset';
 import SmartContractTokenAsset from './token_components/smartcontract_token_asset';
 
@@ -109,6 +110,7 @@ class App extends React.Component {
                       <NavDropdown title="Quản lý" id="navbarScrollingDropdown">
                         <NavDropdown.Item as={Link} to="/coin">Coin</NavDropdown.Item>
                         <NavDropdown.Item as={Link} to="/token">Token</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/token-point">Token to Point</NavDropdown.Item>
                       </NavDropdown>
                     </Nav>
 
@@ -127,6 +129,7 @@ class App extends React.Component {
 
                   <Route exact path='/coin' element={<RecordList />} />
                   <Route exact path='/token' element={<TokenManagement />} />
+                  <Route exact path='/token-point' element={<TokenPointRatio />} />
                   <Route exact path='/my-asset' element={<MyTokenAsset />} />
                   <Route exact path='/smartcontract-asset' element={<SmartContractTokenAsset />} />
 

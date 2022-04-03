@@ -5,6 +5,7 @@ const ABI = MetamaskValue.SM_PAYMENT_ABI;
 const ERC20_ABI = MetamaskValue.ERC20_ABI;
 const SM_PAYMENT_ADDRESS = MetamaskValue.SM_PAYMENT_ADDRESS;
 const web3 = new Web3(window.ethereum);
+//web3.eth.handleRevert = true;
 const ContractMM = new web3.eth.Contract(ABI, SM_PAYMENT_ADDRESS);
 
 export const mm_util = {
@@ -28,6 +29,7 @@ export const mm_util = {
 
     GetTransactionDetail: async function (txnHash) {
         return await web3.eth.getTransaction(txnHash);
+        //return await web3.eth.getTransactionReceipt(txnHash);
     },
 
     GetDefaultBalance: async function (address) {

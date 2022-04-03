@@ -1,5 +1,5 @@
 export const my_server = {
-    CallServer: async function (url, method, body_parameter) {
+    CallServer: async function (url, body_parameter) {
         let bodyData = {empty:''}
         if(body_parameter)
             bodyData = body_parameter;

@@ -54,7 +54,11 @@ module.exports = {
     Update_deposit_Done: async function (depositdata) {
         if (depositdata && depositdata.length > 0) {
             var db_connect = dbo.getDb();
-            await db_connect
+
+            var token_points_data = await db_connect.collection("tokens_points").find({}).toArray();
+            var token_points = token_points_data[0].list_tokens;
+
+            var doc_list = await db_connect
                 .collection("game_deposit")
                 .find({
                     "deposit_history": {
@@ -66,37 +70,68 @@ module.exports = {
                             { "deposit_done": { $exists: true, $ne: true } }]
                         }
                     }
-                })
-                .forEach(async function (doc) {
+                }).toArray();
 
-                    if (doc.deposit_history && doc.deposit_history.length > 0) {
-                        for (var nthix = 0; nthix < doc.deposit_history.length; nthix++) {
-                            var history = doc.deposit_history[nthix];
+            for (const [index, doc] of doc_list.entries()) {
 
-                            var dsit_data = depositdata.find(e => e.id == history.id);
-                            if (dsit_data) {
-                                history.deposit_done = true;
-                                history.deposit_token_order = dsit_data.token_order;
-                                history.deposit_amount = dsit_data.amount;
-                                history.deposit_dt = new Date();
+                if (doc.deposit_history && doc.deposit_history.length > 0) {
+                    for (var nthix = 0; nthix < doc.deposit_history.length; nthix++) {
+                        var history = doc.deposit_history[nthix];
+
+                        var dsit_data = depositdata.find(e => e.id == history.id);
+                        if (dsit_data) {
+                            history.deposit_done = true;
+                            history.deposit_token_order = dsit_data.token_order;
+                            history.deposit_amount = parseFloat(dsit_data.amount);
+                            history.deposit_dt = new Date();
+
+                            var toPoint = token_points.find(e => e._index == dsit_data.token_order)?._Buy_Points;
+                            if (toPoint) {
+                                history.received_points = history.deposit_amount * toPoint;
+                            } else {
+                                history.received_points = 0;
                             }
                         }
-
-                        await db_connect
-                            .collection("game_deposit")
-                            .updateOne(
-                                { _id: doc._id },
-                                {
-                                    $set: {
-                                        deposit_history: doc.deposit_history
-                                    },
-                                }, function (err, res) {
-                                    if (err) throw err;
-                                    console.log("1 document updated");
-                                    //response.json(res);
-                                });
                     }
-                });
+
+                    await db_connect
+                        .collection("game_deposit")
+                        .updateOne(
+                            { _id: doc._id },
+                            {
+                                $set: {
+                                    deposit_history: doc.deposit_history
+                                },
+                            });
+
+                    //console.log("Update_deposit_Done: 1 document updated");
+                }
+            }
         }
+    },
+
+    Get_Balance_Point_By_Address: async function (wallet_address) {
+        let db_connect = dbo.getDb();
+
+        let data = await db_connect.collection("game_deposit")
+            .find({
+                wallet_address: wallet_address,
+                enable: true,
+                deposit_history: {
+                    $exists: true,
+                    $ne: [],
+                }
+            }).toArray();
+
+        let totalPoints = 0;
+        if (data && data.length > 0 && data[0].deposit_history) {
+            for (const [index, value] of data[0].deposit_history.entries()) {
+                if (value.deposit_done === true && value.received_points) {
+                    totalPoints = totalPoints + value.received_points;
+                }
+            }
+        }
+
+        return totalPoints;
     }
 };

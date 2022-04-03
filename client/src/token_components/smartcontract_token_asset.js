@@ -108,11 +108,11 @@ class SmartContractTokenAsset extends React.Component {
 
                 // withdraw all
                 if (crSelectedData._All == true) {
-                    await mm_util.ContractMM.methods.withdraw_default_aLL()
+                    await mm_util.ContractMM.methods.withdraw_default_all()
                         .send({ from: senderAddress });
                 } else {
                     await mm_util.ContractMM.methods.withdraw_default(weiAmount)
-                    .send({ from: senderAddress });
+                        .send({ from: senderAddress });
                 }
             } else {
                 // withdraw token
@@ -121,9 +121,9 @@ class SmartContractTokenAsset extends React.Component {
                 if (crSelectedData._All == true) {
                     await mm_util.ContractMM.methods.withdraw_token_all(crSelectedData._index)
                         .send({ from: senderAddress });
-                }else {
+                } else {
                     await mm_util.ContractMM.methods.withdraw_token(crSelectedData._index, weiAmount)
-                    .send({ from: senderAddress });
+                        .send({ from: senderAddress });
                 }
             }
 

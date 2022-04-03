@@ -19,7 +19,7 @@ class Deposit_History extends React.Component {
     }
 
     async getList() {
-        this.setState({isLoading: true});
+        this.setState({ isLoading: true });
         var senderAddress = await mm_util.GetCurrentMM_Address();
         // 1) save to Mongo DB to get payment ID
         var mgoResponse = await fetch(`${process.env.REACT_APP_API_URL}game/deposit_history`, {
@@ -33,11 +33,14 @@ class Deposit_History extends React.Component {
         });
         var data = await mgoResponse.json();
 
-        if (data && data.length >0 ) {
+        // sort desc
+        data.sort((a, b) => (a.deposit_dt > b.deposit_dt) && -1 || 1);
+
+        if (data && data.length > 0) {
             this.setState({ datalist: data });
         }
 
-        this.setState({isLoading: false});
+        this.setState({ isLoading: false });
     };
 
     render() {
@@ -56,6 +59,14 @@ class Deposit_History extends React.Component {
                         <td>{value.deposit_done ? "○" : "x"}</td>
                         <td>{value.deposit_token_symbol}</td>
                         <td className='text-end'>{value.deposit_amount}</td>
+                        <td className='text-end'>
+                            <NumberFormat value={value.received_points}
+                                decimalSeparator="."
+                                displayType="text"
+                                type="text"
+                                thousandSeparator={true}
+                                allowNegative={true} />
+                        </td>
                         <td>{value.deposit_dt}</td>
                     </tr>);
             }
@@ -72,6 +83,7 @@ class Deposit_History extends React.Component {
                                 <th>deposit_done</th>
                                 <th>deposit_token_order</th>
                                 <th>deposit_amount</th>
+                                <th>received_points</th>
                                 <th>deposit_dt</th>
                             </tr>
                         </thead>

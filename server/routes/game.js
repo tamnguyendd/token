@@ -13,11 +13,7 @@ const ObjectId = require("mongodb").ObjectId;
 
 // connect metamask and smart contract
 const MetamaskValue = require("../metamask/MetamaskValue");
-
-// This section will help you get a list of all the records.
-gameRouter.route("/game").get(function (req, res) {
-    res.json("Hello game");
-});
+const chubaove = require('../commons/chubaove');
 
 // This section will help you create a new record.
 gameRouter.route("/game/deposit").post(async function (req, response) {
@@ -109,6 +105,11 @@ gameRouter.route("/game/deposit_history").post(async function (req, response) {
         }
     }
     response.json(hisData);
+});
+
+gameRouter.route("/game/get_received_points").post(async function (req, response) {
+    var totalPoints = await chubaove.Get_Balance_Point_By_Address(req.body.fromAddress);
+    response.json(totalPoints);
 });
 
 module.exports = gameRouter;
