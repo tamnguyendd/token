@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { Table, Modal, Button, Form, Row, Col, ToastContainer, Toast } from 'react-bootstrap';
 import { mm_util } from '../metamask_components/metamask_utility.js';
 import NumberFormat from "react-number-format";

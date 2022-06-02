@@ -1,2 +1,14 @@
 https://getbootstrap.com/docs/5.1/utilities/text/
 npm install
+
+
+cd client
+npm start
+
+cd server
+node server.js
+
+mongoexport --uri mongodb+srv://tamnguyen:B1Qs9EbEhDT2vjKA@cluster0.mpgr0.mongodb.net/S_Coin --collection=game_deposit  --out=game_deposit.json
+mongoexport --uri mongodb+srv://tamnguyen:B1Qs9EbEhDT2vjKA@cluster0.mpgr0.mongodb.net/S_Coin --collection=records  --out=records.json
+mongoexport --uri mongodb+srv://tamnguyen:B1Qs9EbEhDT2vjKA@cluster0.mpgr0.mongodb.net/S_Coin --collection=tokens  --out=tokens.json
+mongoexport --uri mongodb+srv://tamnguyen:B1Qs9EbEhDT2vjKA@cluster0.mpgr0.mongodb.net/S_Coin --collection=tokens_points  --out=tokens_points.json 
